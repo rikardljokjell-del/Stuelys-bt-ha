@@ -36,6 +36,20 @@ class MeshAdvertisement(ServiceInterface):
         """BlueZ has removed the advertisement."""
 
 
+class TimedMeshAdvertisement(MeshAdvertisement):
+    def __init__(self, packet, interval_ms):
+        self.interval_ms = interval_ms
+        super().__init__(packet)
+
+    @dbus_property(access=PropertyAccess.READ, name="MinInterval")
+    def min_interval(self) -> "u":
+        return self.interval_ms
+
+    @dbus_property(access=PropertyAccess.READ, name="MaxInterval")
+    def max_interval(self) -> "u":
+        return self.interval_ms
+
+
 def _advertising_adapter(objects, preferred_source):
     candidates = []
     for path, interfaces in objects.items():
@@ -50,7 +64,7 @@ def _advertising_adapter(objects, preferred_source):
     raise HomeAssistantError("No powered local BlueZ adapter supports BLE advertising")
 
 
-async def broadcast(packet, preferred_source):
+async def broadcast(packet, preferred_source, *, duration=3, interval_ms=None):
     stage = "connect to the local system D-Bus"
     try:
         bus = MessageBus(bus_type=BusType.SYSTEM)
@@ -65,10 +79,14 @@ async def broadcast(packet, preferred_source):
                 path = _advertising_adapter(objects, preferred_source)
                 adapter = bus.get_proxy_object(BLUEZ, path, await bus.introspect(BLUEZ, path))
                 manager = adapter.get_interface(MANAGER)
-                bus.export(PATH, MeshAdvertisement(packet))
+                advertisement = (
+                    MeshAdvertisement(packet) if interval_ms is None
+                    else TimedMeshAdvertisement(packet, interval_ms)
+                )
+                bus.export(PATH, advertisement)
                 stage = f"register a BLE advertisement on {path}"
                 await manager.call_register_advertisement(PATH, {})
-                await asyncio.sleep(3)
+                await asyncio.sleep(duration)
                 stage = f"unregister the BLE advertisement on {path}"
                 await manager.call_unregister_advertisement(PATH)
         finally:

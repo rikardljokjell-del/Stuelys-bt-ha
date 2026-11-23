@@ -3,11 +3,22 @@
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.device_registry import CONNECTION_BLUETOOTH, DeviceInfo
 
 from .mesh import Lamp
 
 DOMAIN = "sg_smart_csrmesh"
-PLATFORMS = [Platform.LIGHT]
+PLATFORMS = [Platform.LIGHT, Platform.BUTTON]
+
+
+def device_info(lamp: Lamp) -> DeviceInfo:
+    return DeviceInfo(
+        identifiers={(DOMAIN, lamp.address)},
+        connections={(CONNECTION_BLUETOOTH, lamp.address)},
+        name=f"SG Smart {lamp.name}",
+        manufacturer="SG Armaturen",
+        model="LEDDim Smart Pill (CSRmesh)",
+    )
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:

@@ -76,6 +76,23 @@
         "gatt_without_response": "Bluetooth GATT without response",
         "advertisement": "BLE advertisements (like the wall switch)"
       }
+    },
+    "dimming_mode": {
+      "options": {
+        "absolute": "Brightness in percent (slider)",
+        "relative": "Dim up and down (buttons)",
+        "disabled": "On and off only"
+      }
+    }
+  },
+  "entity": {
+    "button": {
+      "dim_up": {
+        "name": "Dim up"
+      },
+      "dim_down": {
+        "name": "Dim down"
+      }
     }
   },
   "options": {
@@ -86,10 +103,33 @@
         "data": {
           "dimming": "Enable brightness"
         }
+      },
+      "advertised_dimming": {
+        "title": "Choose dimming",
+        "description": "Try brightness in percent to add a slider. If the lamp only responds to the dimming commands used by the wall switch, choose Dim up and down.",
+        "data": {
+          "dimming_mode": "Dimming method"
+        }
+      },
+      "dim_first": {
+        "title": "Test lower brightness",
+        "description": "Turn the lamp up before testing. Submit to send 30% or Dim down, depending on your selection. Watch for the lamp to dim. {detail}"
+      },
+      "dim_second": {
+        "title": "Test higher brightness",
+        "description": "Submit to send 70% or Dim up. Watch for the lamp to get brighter. {detail}"
+      },
+      "dim_confirm": {
+        "title": "Did the lamp respond?",
+        "description": "Select the checkbox if the lamp got dimmer and then brighter. Leave it clear to try another dimming method.",
+        "data": {
+          "observed": "I saw the lamp get dimmer and then brighter"
+        }
       }
     },
     "error": {
-      "no_status": "Could not verify the receiver's name and status. ON/OFF remains usable. See the details above."
+      "no_status": "Could not verify the receiver's name and status. ON/OFF remains usable. See the details above.",
+      "dim_test_failed": "Could not send the dim command. See the details above."
     }
   }
 }

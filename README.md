@@ -17,6 +17,7 @@ På mobil med Zipper i Studio Code Server kan du laste opp installasjonsfilen ti
 /config/custom_components/sg_smart_csrmesh/
 ├── __init__.py
 ├── advertise.py
+├── button.py
 ├── config_flow.py
 ├── light.py
 ├── manifest.json
@@ -38,9 +39,12 @@ I AV/PÅ-modus viser entiteten antatt tilstand fra siste HA-kommando eller motta
 
 ## Lysstyrke
 
-Etter en vellykket AV/PÅ-test velger du **Konfigurer → Aktiver lysstyrke** på integrasjonen. Den ber om mottakerens navn og kontrollerer et autentisert svar med riktig navn og steds-ID. Deretter ber den denne mesh-noden om status. Først når begge svarene kommer, får den samme lysentiteten en lysstyrkekontroll.
+Etter en vellykket AV/PÅ-test velger du **Konfigurer** på integrasjonen. Med BLE-annonser får du to valg:
 
-Prøv for eksempel 30 % og deretter 70 %. Se på lampen ved begge nivåene. Integrasjonen sender et absolutt nivå på 1–100 %, leser nivået tilbake og melder feil ved avvik. Null sendes som AV. Med lysstyrke aktiv leses status også hvert andre minutt slik at Home Assistant kan fange opp endringer fra veggbryteren. Du kan slå av lysstyrkefunksjonen under **Konfigurer**.
+- **Lysstyrke i prosent (skyveknapp)** prøver 30 % og 70 % i den korte `FF03`-gruppekommandoen fra AV/PÅ. Hvis lampen reagerer på begge, får den eksisterende lysentiteten en skyveknapp. Home Assistant viser sist sendte lysstyrke som antatt nivå. En mottatt dimmekommando fra veggbryteren gjør nivået ukjent igjen.
+- **Dim opp og ned (knapper)** prøver `FF23` fra dimmeopptakene. Hvert trykk sender opp eller ned, lar lampen dimme en kort stund og sender så stopp. Etter bestått test vises **Dim opp** og **Dim ned** under den samme enheten.
+
+Med GATT velger du **Konfigurer → Aktiver lysstyrke**. Da må mottakeren oppgi navn og svare på en statusforespørsel før skyveknappen aktiveres. Home Assistant leser status etter en kommando og hvert andre minutt. Lysstyrke null sendes som AV i begge prosentmodusene.
 
 ## Hvis testen stopper
 
@@ -62,6 +66,6 @@ Du kan også velge **Bluetooth GATT uten kvittering** dersom mottakeren støtter
 
 De fem BLE Radar-eksportene er annonseskann. Mottakeren annonserte seg som tilkoblingsbar med FEF1 i alle fem. Alle 105 ulike FEF1-datapayloadene i knappetestene besto HMAC-kontrollen med den oppgitte PIN-en. Tallet inkluderer videresendte varianter av samme melding. I hvileopptaket var mottakeren synlig, uten slike datapayloads.
 
-Veggbryteren sendte kort `FF03` for AV/PÅ til samme gruppe i begge opptakene. Dim opp og ned brukte `FF23` med verdiene `01` og `02`, etterfulgt av `03` for stopp. Opptakene inneholder ingen direkte GATT-test fra Home Assistant og ingen rapportert absolutt lysstyrke. AV/PÅ bruker det observerte formatet med nye sekvens- og transaksjonsnumre. Absolutt lysstyrke bruker SG-referansens direkte `FF03` og statusforespørsel `FF04`. Fysisk funksjon på denne lampen må bekreftes lokalt.
+Veggbryteren sendte kort `FF03` for AV/PÅ til samme gruppe i begge opptakene. Dim opp og ned brukte `FF23` med verdiene `01` og `02`, etterfulgt av `03` for stopp. AV/PÅ via BLE-annonser er bekreftet på lampen. Opptakene viser relative dimmekommandoer, så absolutt lysstyrke med kort `FF03` må prøves på lampen. GATT-styring bruker SG-referansens direkte `FF03` og statusforespørsel `FF04`.
 
 SG-meldinger og GATT-fragmentering er beskrevet i [Homey-integrasjonens SG-protokoll](https://github.com/fiskentnt/com.sgsmart.csrmesh/blob/1a15c74b2a69c0f6b6a5d48eb2918f85b9bd5839/lib/sgProtocol.js) og [MeshBridge](https://github.com/fiskentnt/com.sgsmart.csrmesh/blob/1a15c74b2a69c0f6b6a5d48eb2918f85b9bd5839/lib/MeshBridge.js). Kryptering og autentisering kommer fra [recsrmesh 0.3.0](https://pypi.org/project/recsrmesh/0.3.0/), som bygger på [nkaminski/csrmesh](https://github.com/nkaminski/csrmesh).

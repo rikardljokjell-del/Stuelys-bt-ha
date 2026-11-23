@@ -76,6 +76,23 @@
         "gatt_without_response": "Bluetooth GATT uten kvittering",
         "advertisement": "BLE-annonser (som veggbryteren)"
       }
+    },
+    "dimming_mode": {
+      "options": {
+        "absolute": "Lysstyrke i prosent (skyveknapp)",
+        "relative": "Dim opp og ned (knapper)",
+        "disabled": "Kun AV/PÅ"
+      }
+    }
+  },
+  "entity": {
+    "button": {
+      "dim_up": {
+        "name": "Dim opp"
+      },
+      "dim_down": {
+        "name": "Dim ned"
+      }
     }
   },
   "options": {
@@ -86,10 +103,33 @@
         "data": {
           "dimming": "Aktiver lysstyrke"
         }
+      },
+      "advertised_dimming": {
+        "title": "Velg dimming",
+        "description": "Prøv lysstyrke i prosent for å få en skyveknapp. Hvis lampen bare reagerer på de samme dimmekommandoene som veggbryteren sender, velger du Dim opp og ned.",
+        "data": {
+          "dimming_mode": "Dimmemåte"
+        }
+      },
+      "dim_first": {
+        "title": "Test lavere lysstyrke",
+        "description": "Sørg for at lampen lyser godt før testen. Trykk Send inn for å sende 30 % eller Dim ned, avhengig av valget i forrige steg. Se om lampen dimmes. {detail}"
+      },
+      "dim_second": {
+        "title": "Test høyere lysstyrke",
+        "description": "Trykk Send inn for å sende 70 % eller Dim opp. Se om lampen blir lysere. {detail}"
+      },
+      "dim_confirm": {
+        "title": "Reagerte lampen?",
+        "description": "Kryss av hvis lampen først ble svakere og deretter lysere. La krysset stå tomt for å prøve en annen dimmemåte.",
+        "data": {
+          "observed": "Jeg så at lampen ble svakere og deretter lysere"
+        }
       }
     },
     "error": {
-      "no_status": "Kunne ikke verifisere navn og status fra mottakeren. AV/PÅ kan fortsatt brukes. Se detaljene over."
+      "no_status": "Kunne ikke verifisere navn og status fra mottakeren. AV/PÅ kan fortsatt brukes. Se detaljene over.",
+      "dim_test_failed": "Kunne ikke sende dimmekommandoen. Se detaljene over."
     }
   }
 }

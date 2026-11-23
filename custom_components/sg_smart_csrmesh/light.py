@@ -8,11 +8,10 @@ from time import monotonic
 from homeassistant.components import bluetooth
 from homeassistant.components.light import ATTR_BRIGHTNESS, ColorMode, LightEntity
 from homeassistant.core import callback
-from homeassistant.helpers.device_registry import CONNECTION_BLUETOOTH, DeviceInfo
 
-from . import DOMAIN
+from . import device_info
 from .mesh import MeshError
-from .protocol import FEF1, switch_power
+from .protocol import FEF1, switch_dimming, switch_power
 
 SCAN_INTERVAL = timedelta(minutes=2)
 _LOGGER = logging.getLogger(__name__)
@@ -30,15 +29,14 @@ class SGLight(LightEntity):
         self.lamp = entry.runtime_data
         self.switch = entry.data["switch_id"]
         self.node = entry.options.get("node")
+        self.advertised_brightness = entry.options.get("advertised_dimming") == "absolute"
         self._actions = asyncio.Lock()
         self._attr_unique_id = self.lamp.address
-        self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, self.lamp.address)},
-            connections={(CONNECTION_BLUETOOTH, self.lamp.address)},
-            name=f"SG Smart {self.lamp.name}", manufacturer="SG Armaturen",
-            model="LEDDim Smart Pill (CSRmesh)",
+        self._attr_device_info = device_info(self.lamp)
+        mode = (
+            ColorMode.BRIGHTNESS if self.node is not None or self.advertised_brightness
+            else ColorMode.ONOFF
         )
-        mode = ColorMode.ONOFF if self.node is None else ColorMode.BRIGHTNESS
         self._attr_supported_color_modes = {mode}
         self._attr_color_mode = mode
         self._attr_assumed_state = self.node is None
@@ -57,7 +55,13 @@ class SGLight(LightEntity):
             nonlocal last_seq
             if info.time < started:
                 return
-            event = switch_power(self.lamp.key, info.service_data.get(FEF1, b""), self.switch)
+            frame = info.service_data.get(FEF1, b"")
+            event = switch_power(self.lamp.key, frame, self.switch)
+            if event is None and self.advertised_brightness and self.brightness is not None:
+                dimming = switch_dimming(self.lamp.key, frame, self.switch)
+                if dimming is not None and dimming[:2] == (self.lamp.group, self.lamp.location):
+                    self._attr_brightness = None
+                    self.async_write_ha_state()
             if event is None:
                 return
             group, location, on, seq = event
@@ -93,7 +97,11 @@ class SGLight(LightEntity):
         async with self._actions:
             mismatch = None
             try:
-                if brightness is not None and brightness > 0 and self.node is not None:
+                if brightness and self.advertised_brightness:
+                    percent = max(1, round(brightness * 100 / 255))
+                    await self.lamp.advertised_level(percent)
+                    self._set_status(percent)
+                elif brightness and self.node is not None:
                     percent = max(1, round(brightness * 100 / 255))
                     actual = await self.lamp.set_level(self.node, percent)
                     self._set_status(actual)

@@ -16,7 +16,8 @@ from recsrmesh.ble import CHARACTERISTIC_HIGH, CHARACTERISTIC_LOW, SERVICE_UUID
 from recsrmesh.mcp_crypto import decrypt_packet, make_packet, random_seq
 
 from .protocol import (
-    APP, FEF1, device_name, device_status, level_command, network_key, power_command,
+    APP, FEF1, device_name, device_status, dim_command, level_command, network_key,
+    power_command,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -25,6 +26,8 @@ WRITE_SETTLE_TIME = 0.25
 REPLY_TIMEOUT = 8
 # In the switch captures, the same frame appears with TTL 0x32 and 0x31.
 ADVERTISEMENT_TTL = b"\x32"
+DIM_ADVERTISEMENT_INTERVAL = 100
+DIM_HOLD_SECONDS = 1.5
 
 
 class MeshError(HomeAssistantError):
@@ -169,7 +172,8 @@ class Lamp:
     async def power(self, on):
         if self.transport == "advertisement":
             async with self.lock:
-                await self._advertise_power(on)
+                data = power_command(self.location, on, self.next_tid())
+                await self._advertise(data, f"FF03 {'ON' if on else 'OFF'}")
             return
         target = self.power_node if self.power_node is not None else self.group
         target_type = "node" if self.power_node is not None else "group"
@@ -184,17 +188,46 @@ class Lamp:
             _LOGGER.debug("%s [%s] %s written to GATT", self.name, self.address, action)
             await asyncio.sleep(WRITE_SETTLE_TIME)
 
-    async def _advertise_power(self, on):
-        action = f"FEF1 {'ON' if on else 'OFF'} advertisement to group {self.group:04X}"
+    async def advertised_level(self, percent):
+        if not 1 <= percent <= 100:
+            raise ValueError("Expected a brightness between 1 and 100 percent")
+        async with self.lock:
+            data = power_command(self.location, True, self.next_tid(), percent=percent)
+            await self._advertise(data, f"FF03 brightness {percent}%")
+
+    async def dim_step(self, up):
+        """Send a short hold and release, using the switch's FF23 format."""
+        async with self.lock:
+            held = False
+            try:
+                await self._advertise(
+                    dim_command(self.location, 1 if up else 2),
+                    "FF23 dim up" if up else "FF23 dim down",
+                    duration=DIM_HOLD_SECONDS,
+                    interval_ms=DIM_ADVERTISEMENT_INTERVAL,
+                )
+                held = True
+            finally:
+                # A failed or cancelled start may still have reached the dimmer.
+                try:
+                    await self._advertise(dim_command(self.location, 3), "FF23 stop")
+                except MeshError:
+                    if held:
+                        raise
+
+    async def _advertise(self, data, command, *, duration=3, interval_ms=None):
+        action = f"FEF1 {command} advertisement to group {self.group:04X}"
         try:
             if sys.platform != "linux":
                 raise HomeAssistantError("BLE advertising requires a local Linux Bluetooth adapter")
             advertiser = await async_import_module(self.hass, f"{__package__}.advertise")
             info = bluetooth.async_last_service_info(self.hass, self.address, connectable=True)
-            data = power_command(self.location, on, self.next_tid())
             packet = self.packet(self.group, data)
             adapter = await advertiser.broadcast(
-                packet[:-1] + ADVERTISEMENT_TTL, info.source if info else None
+                packet[:-1] + ADVERTISEMENT_TTL,
+                info.source if info else None,
+                duration=duration,
+                interval_ms=interval_ms,
             )
         except (HomeAssistantError, ImportError) as err:
             _LOGGER.warning("%s [%s] %s failed: %s", self.name, self.address, action, err)

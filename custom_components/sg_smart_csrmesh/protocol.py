@@ -10,25 +10,49 @@ def network_key(password: str) -> bytes:
     return generate_key(password.encode("utf-8") + b"\x00MCP")
 
 
-def switch_power(key: bytes, frame: bytes, switch: int):
-    """Recognize the short FF03 observed on a physical switch press."""
-    if len(frame) != 23 or int.from_bytes(frame[3:5], "little") != switch:
+def _switch_message(key, frame, switch, length, opcode):
+    if len(frame) != length or int.from_bytes(frame[3:5], "little") != switch:
         return None
     packet = decrypt_packet(key, frame)
     if packet is None:
         return None
     data = packet["decpayload"]
     group = int.from_bytes(data[:2], "little")
-    if not 0 < group < APP or data[2:4] != b"\xff\x03":
+    if not 0 < group < APP or data[2:4] != opcode:
         return None
+    return group, data, packet["seq"]
+
+
+def switch_power(key: bytes, frame: bytes, switch: int):
+    """Recognize the short FF03 observed on a physical switch press."""
+    decoded = _switch_message(key, frame, switch, 23, b"\xff\x03")
+    if decoded is None:
+        return None
+    group, data, seq = decoded
     if data[6] not in (0, 1) or data[7] != 0:
         return None
-    return group, data[4:6], bool(data[6]), packet["seq"]
+    return group, data[4:6], bool(data[6]), seq
 
 
-def power_command(location: bytes, on: bool, tid: int) -> bytes:
+def switch_dimming(key: bytes, frame: bytes, switch: int):
+    """Recognize a physical dim-up, dim-down or stop message."""
+    decoded = _switch_message(key, frame, switch, 21, b"\xff\x23")
+    if decoded is None:
+        return None
+    group, data, seq = decoded
+    if data[6] not in (1, 2, 3):
+        return None
+    return group, data[4:6], data[6], seq
+
+
+def power_command(location: bytes, on: bool, tid: int, *, percent: int = 0) -> bytes:
     """Short group command from the AV/PÅ captures (one-byte transaction ID)."""
-    return b"\xff\x03" + location + bytes([on, 0, tid & 0xFF])
+    return b"\xff\x03" + location + bytes([on, percent, tid & 0xFF])
+
+
+def dim_command(location: bytes, action: int) -> bytes:
+    """Group FF23 from the wall-switch captures. 1 up, 2 down, 3 stop."""
+    return b"\xff\x23" + location + bytes([action])
 
 
 def level_command(location: bytes, on: bool, percent: int, tid: int) -> bytes:

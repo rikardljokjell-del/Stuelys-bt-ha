@@ -223,7 +223,12 @@ class SGConfigFlow(ConfigFlow, domain=DOMAIN):
 
 
 class SGOptionsFlow(OptionsFlow):
+    def __init__(self):
+        self.dimming_mode = None
+
     async def async_step_init(self, user_input=None):
+        if self.config_entry.data.get("transport") == "advertisement":
+            return await self.async_step_advertised_dimming()
         detail = ""
         if user_input is not None:
             if not user_input["dimming"]:
@@ -242,4 +247,63 @@ class SGOptionsFlow(OptionsFlow):
             data_schema=vol.Schema({
                 vol.Required("dimming", default="node" in self.config_entry.options): bool,
             }),
+        )
+
+    async def async_step_advertised_dimming(self, user_input=None):
+        if user_input is not None:
+            self.dimming_mode = user_input["dimming_mode"]
+            if self.dimming_mode == "disabled":
+                return self.async_create_entry(title="", data={})
+            return await self.async_step_dim_first()
+        return self.async_show_form(
+            step_id="advertised_dimming",
+            data_schema=vol.Schema({
+                vol.Required(
+                    "dimming_mode",
+                    default=self.config_entry.options.get("advertised_dimming", "disabled"),
+                ): SelectSelector(SelectSelectorConfig(
+                    options=["absolute", "relative", "disabled"],
+                    translation_key="dimming_mode",
+                )),
+            }),
+        )
+
+    async def _test_dimming(self, step_id, user_input, percent, up, next_step):
+        detail = ""
+        if user_input is not None:
+            lamp = self.config_entry.runtime_data
+            try:
+                if self.dimming_mode == "absolute":
+                    await lamp.advertised_level(percent)
+                else:
+                    await lamp.dim_step(up)
+            except MeshError as err:
+                detail = str(err)
+            else:
+                return await next_step()
+        return self.async_show_form(
+            step_id=step_id,
+            data_schema=vol.Schema({}),
+            errors={"base": "dim_test_failed"} if detail else {},
+            description_placeholders={"detail": detail},
+        )
+
+    async def async_step_dim_first(self, user_input=None):
+        return await self._test_dimming(
+            "dim_first", user_input, 30, False, self.async_step_dim_second
+        )
+
+    async def async_step_dim_second(self, user_input=None):
+        return await self._test_dimming(
+            "dim_second", user_input, 70, True, self.async_step_dim_confirm
+        )
+
+    async def async_step_dim_confirm(self, user_input=None):
+        if user_input is not None:
+            if user_input["observed"]:
+                return self.async_create_entry(title="", data={"advertised_dimming": self.dimming_mode})
+            return await self.async_step_advertised_dimming()
+        return self.async_show_form(
+            step_id="dim_confirm",
+            data_schema=vol.Schema({vol.Required("observed", default=False): bool}),
         )
