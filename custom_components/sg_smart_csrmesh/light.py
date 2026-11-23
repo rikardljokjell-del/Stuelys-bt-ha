@@ -14,6 +14,7 @@ from .mesh import MeshError
 from .protocol import FEF1, switch_dimming, switch_power
 
 SCAN_INTERVAL = timedelta(minutes=2)
+MIN_ADVERTISED_BRIGHTNESS_PERCENT = 30
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -98,9 +99,11 @@ class SGLight(LightEntity):
             mismatch = None
             try:
                 if brightness and self.advertised_brightness:
-                    percent = max(1, round(brightness * 100 / 255))
+                    minimum = MIN_ADVERTISED_BRIGHTNESS_PERCENT
+                    percent = round(minimum + brightness / 255 * (100 - minimum))
                     await self.lamp.advertised_level(percent)
-                    self._set_status(percent)
+                    self._attr_is_on = True
+                    self._attr_brightness = brightness
                 elif brightness and self.node is not None:
                     percent = max(1, round(brightness * 100 / 255))
                     actual = await self.lamp.set_level(self.node, percent)

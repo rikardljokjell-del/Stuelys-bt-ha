@@ -41,7 +41,7 @@ I AV/PÅ-modus viser entiteten antatt tilstand fra siste HA-kommando eller motta
 
 Etter en vellykket AV/PÅ-test velger du **Konfigurer** på integrasjonen. Med BLE-annonser får du to valg:
 
-- **Lysstyrke i prosent (skyveknapp)** prøver 30 % og 70 % i den korte `FF03`-gruppekommandoen fra AV/PÅ. Hvis lampen reagerer på begge, får den eksisterende lysentiteten en skyveknapp. Home Assistant viser sist sendte lysstyrke som antatt nivå. En mottatt dimmekommando fra veggbryteren gjør nivået ukjent igjen.
+- **Lysstyrke i prosent (skyveknapp)** prøver 30 % og 70 % i den korte `FF03`-gruppekommandoen fra AV/PÅ. Hvis lampen reagerer på begge, får den eksisterende lysentiteten en skyveknapp. Den skalerer lampens område fra 30 % til 100 %. Laveste nivå som lyser sender 30 %, midten sender 65 %, og 0 slår av. Home Assistant viser sist valgte skyveknappnivå som antatt lysstyrke. En mottatt dimmekommando fra veggbryteren gjør nivået ukjent igjen.
 - **Dim opp og ned (knapper)** prøver `FF23` fra dimmeopptakene. Hvert trykk sender opp eller ned, lar lampen dimme en kort stund og sender så stopp. Etter bestått test vises **Dim opp** og **Dim ned** under den samme enheten.
 
 Med GATT velger du **Konfigurer → Aktiver lysstyrke**. Da må mottakeren oppgi navn og svare på en statusforespørsel før skyveknappen aktiveres. Home Assistant leser status etter en kommando og hvert andre minutt. Lysstyrke null sendes som AV i begge prosentmodusene.
