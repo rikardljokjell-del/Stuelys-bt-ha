@@ -9,7 +9,8 @@
         "data": {
           "address": "Bluetooth-mottaker",
           "password": "Nettverks-PIN",
-          "switch_id": "Veggbryterens mesh-ID (heksadesimal)"
+          "switch_id": "Veggbryterens mesh-ID (heksadesimal)",
+          "without_response": "Test uten BLE-kvittering"
         }
       },
       "learn": {

@@ -9,7 +9,8 @@
         "data": {
           "address": "Bluetooth receiver",
           "password": "Mesh passphrase",
-          "switch_id": "Wall switch mesh ID (hex)"
+          "switch_id": "Wall switch mesh ID (hex)",
+          "without_response": "Test BLE writes without response"
         }
       },
       "learn": {

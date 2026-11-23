@@ -1,6 +1,7 @@
 """Short, serialized GATT connections through Home Assistant Bluetooth."""
 
 import asyncio
+from collections import Counter
 from contextlib import asynccontextmanager
 import logging
 
@@ -27,11 +28,12 @@ class MeshError(HomeAssistantError):
 
 
 class Link:
-    def __init__(self, client):
+    def __init__(self, client, *, without_response=False):
         service = client.services.get_service(FEF1) or client.services.get_service(SERVICE_UUID)
         if service is None:
             raise MeshError("Missing CSRmesh GATT service (FEF1 / legacy CSR UUID)")
         self.client = client
+        self.without_response = without_response
         self.low = service.get_characteristic(CHARACTERISTIC_LOW)
         self.high = service.get_characteristic(CHARACTERISTIC_HIGH)
         if self.low is None or self.high is None:
@@ -42,13 +44,20 @@ class Link:
         parts = [(self.high, packet)]
         if len(packet) > 20:
             parts = [(self.low, packet[:20]), (self.high, packet[20:])]
+        if self.without_response:
+            # Check both fragments before sending anything.
+            for char, _ in parts:
+                if "write-without-response" not in char.properties:
+                    raise MeshError(
+                        f"GATT characteristic {char.uuid} does not support writing without response"
+                    )
         for index, (char, chunk) in enumerate(parts):
             if index:
                 # Give the receiver time to process 8003 before writing 8004.
                 await asyncio.sleep(FRAGMENT_DELAY)
             if not {"write", "write-without-response"}.intersection(char.properties):
                 raise MeshError(f"GATT characteristic {char.uuid} is not writable")
-            response = "write" in char.properties
+            response = not self.without_response and "write" in char.properties
             _LOGGER.debug("GATT write %s, %d bytes, response=%s", char.uuid, len(chunk), response)
             try:
                 await self.client.write_gatt_char(char, chunk, response=response)
@@ -58,7 +67,8 @@ class Link:
     async def request(self, packet, key, match):
         frames = asyncio.Queue()
         first = b""
-        low_count = high_count = authenticated = echoes = 0
+        low_count = high_count = echoes = 0
+        mesh_frames = Counter()
 
         def low_notify(_, data):
             nonlocal first, low_count
@@ -88,16 +98,22 @@ class Link:
                     if source == APP:
                         echoes += 1
                         continue
-                    authenticated += 1
-                    _LOGGER.debug("Authenticated mesh frame from %04X, opcode %s", source, data[2:4].hex())
+                    opcode = data[2:4].hex().upper()
+                    mesh_frames[source, opcode] += 1
+                    _LOGGER.debug("Authenticated mesh frame from %04X, opcode %s", source, opcode)
                     result = match(source, data)
                     if result is not None:
                         return result
         except TimeoutError as err:
+            received = ", ".join(
+                f"{source:04X}/{opcode} ×{count}"
+                for (source, opcode), count in mesh_frames.most_common(6)
+            )
             raise MeshError(
                 f"No matching reply after {REPLY_TIMEOUT} s. "
                 f"Notifications 8003={low_count}, 8004={high_count}, "
-                f"authenticated mesh frames={authenticated}, local echoes={echoes}."
+                f"authenticated mesh frames={mesh_frames.total()}, local echoes={echoes}."
+                + (f" Source/opcode: {received}." if received else "")
             ) from err
 
 
@@ -108,6 +124,7 @@ class Lamp:
         self.address = settings["address"]
         self.group = settings["group"]
         self.power_node = settings.get("power_node")
+        self.without_response = settings.get("without_response", False)
         self.location = bytes.fromhex(settings["location"])
         self.key = network_key(settings["password"])
         self.seq = random_seq()
@@ -134,7 +151,7 @@ class Lamp:
                 client = await establish_connection(BleakClient, device, self.name, max_attempts=2)
                 try:
                     stage = "GATT exchange"
-                    yield Link(client)
+                    yield Link(client, without_response=self.without_response)
                 finally:
                     await client.disconnect()
         except (BleakError, OSError, EOFError, TimeoutError, MeshError) as err:

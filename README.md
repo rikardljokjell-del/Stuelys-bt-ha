@@ -53,6 +53,8 @@ Prøv for eksempel 30 % og deretter 70 %. Se på lampen ved begge nivåene. Inte
 
 Under **Prøv direkte styring** kan du la **Les lampestatus etter hver test** stå på. Etter de to testene viser veiviseren rapportert lysstyrke eller feilen for hver lesing. `FF05: 0 %` betyr at mottakeren rapporterte AV. Hvis navne- eller statusforespørselen får tidsavbrudd, viser feilmeldingen antall GATT-varsler, autentiserte mesh-meldinger og ekko av Home Assistants egne meldinger. Send gjerne skjermbildet av dette resultatet ved feil. PIN og pakkedata er utelatt fra diagnosen.
 
+Hvis BLE-skrivingen fullføres uten at lampen reagerer, kan du starte veiviseren igjen og velge **Test uten BLE-kvittering**. Da prøves samme kommando med en annen GATT-skrivemodus. Valget krever at mottakeren støtter modusen, og lagres først etter at du har bekreftet fysisk respons. Meldingen ved tidsavbrudd viser også avsender og opcode for de vanligste autentiserte meldingene.
+
 ## Hva opptakene og kildene viser
 
 De fem BLE Radar-eksportene er annonseskann. Mottakeren annonserte seg som tilkoblingsbar med FEF1 i alle fem. Alle 105 ulike FEF1-datapayloadene i knappetestene besto HMAC-kontrollen med den oppgitte PIN-en. Tallet inkluderer videresendte varianter av samme melding. I hvileopptaket var mottakeren synlig, uten slike datapayloads.

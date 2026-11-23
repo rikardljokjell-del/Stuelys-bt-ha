@@ -67,6 +67,7 @@ class SGConfigFlow(ConfigFlow, domain=DOMAIN):
                     "address": address, "name": devices[address],
                     "password": user_input["password"],
                     "switch_id": int(user_input["switch_id"].strip(), 16),
+                    "without_response": user_input.get("without_response", False),
                 }
                 return await self.async_step_learn()
             errors["switch_id"] = "invalid_id"
@@ -76,6 +77,7 @@ class SGConfigFlow(ConfigFlow, domain=DOMAIN):
                 vol.Required("address", default=next(iter(choices))): vol.In(choices),
                 vol.Required("password"): TextSelector(TextSelectorConfig(type=TextSelectorType.PASSWORD)),
                 vol.Required("switch_id"): str,
+                vol.Optional("without_response", default=False): bool,
             }),
         )
 
