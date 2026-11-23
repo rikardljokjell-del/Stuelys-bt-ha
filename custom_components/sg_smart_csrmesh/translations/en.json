@@ -5,7 +5,7 @@
     "step": {
       "user": {
         "title": "Choose the receiver",
-        "description": "Choose the dimmer that controls the ceiling light. Enter the existing mesh passphrase and the switch's four-digit hexadecimal source ID from the captures.",
+        "description": "Choose the dimmer that controls the ceiling light. The Stuelys defaults are mesh PIN **{pin}** and wall switch mesh ID **{switch_id}**. Both fields are prefilled and can be edited.",
         "data": {
           "address": "Bluetooth receiver",
           "password": "Mesh passphrase",
@@ -99,14 +99,14 @@
     "step": {
       "init": {
         "title": "Brightness",
-        "description": "Enable brightness after the ON/OFF test. Setup reads the receiver's name, mesh address and status. The slider uses absolute percent and reads back the result. Clear the checkbox for ON/OFF only. {detail}",
+        "description": "Enable brightness after the ON/OFF test. Setup reads the receiver's name, mesh address and status. The slider uses absolute percent and reads back the result. Clear the checkbox for ON/OFF only. {detail}\n\nThe Stuelys defaults are PIN **{pin}** and switch ID **{switch_id}**.",
         "data": {
           "dimming": "Enable brightness"
         }
       },
       "advertised_dimming": {
         "title": "Choose dimming",
-        "description": "Try brightness in percent to add a slider. If the lamp only responds to the dimming commands used by the wall switch, choose Dim up and down.",
+        "description": "Try brightness in percent to add a slider. If the lamp only responds to the dimming commands used by the wall switch, choose Dim up and down.\n\nThe Stuelys defaults are PIN **{pin}** and switch ID **{switch_id}**.",
         "data": {
           "dimming_mode": "Dimming method"
         }

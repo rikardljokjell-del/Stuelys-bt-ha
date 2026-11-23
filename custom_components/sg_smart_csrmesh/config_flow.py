@@ -26,6 +26,9 @@ from .mesh import Lamp, MeshError
 from .protocol import FEF1, network_key, switch_power
 
 _LOGGER = logging.getLogger(__name__)
+DEFAULT_PIN = "1234"
+DEFAULT_SWITCH_ID = "C3F7"
+SETUP_DEFAULTS = {"pin": DEFAULT_PIN, "switch_id": DEFAULT_SWITCH_ID}
 
 
 def is_pill(info):
@@ -79,10 +82,15 @@ class SGConfigFlow(ConfigFlow, domain=DOMAIN):
             errors["switch_id"] = "invalid_id"
         choices = {address: f"{name} ({address})" for address, name in devices.items()}
         return self.async_show_form(
-            step_id="user", errors=errors, data_schema=vol.Schema({
+            step_id="user",
+            errors=errors,
+            description_placeholders=SETUP_DEFAULTS,
+            data_schema=vol.Schema({
                 vol.Required("address", default=next(iter(choices))): vol.In(choices),
-                vol.Required("password"): TextSelector(TextSelectorConfig(type=TextSelectorType.PASSWORD)),
-                vol.Required("switch_id"): str,
+                vol.Required("password", default=DEFAULT_PIN): TextSelector(
+                    TextSelectorConfig(type=TextSelectorType.PASSWORD)
+                ),
+                vol.Required("switch_id", default=DEFAULT_SWITCH_ID): str,
                 vol.Optional("transport", default="gatt"): SelectSelector(SelectSelectorConfig(
                     options=["gatt", "gatt_without_response", "advertisement"],
                     translation_key="transport",
@@ -243,7 +251,7 @@ class SGOptionsFlow(OptionsFlow):
                 return self.async_create_entry(title="", data={"node": node})
         return self.async_show_form(
             step_id="init", errors={"base": "no_status"} if detail else {},
-            description_placeholders={"detail": detail},
+            description_placeholders={**SETUP_DEFAULTS, "detail": detail},
             data_schema=vol.Schema({
                 vol.Required("dimming", default="node" in self.config_entry.options): bool,
             }),
@@ -257,6 +265,7 @@ class SGOptionsFlow(OptionsFlow):
             return await self.async_step_dim_first()
         return self.async_show_form(
             step_id="advertised_dimming",
+            description_placeholders=SETUP_DEFAULTS,
             data_schema=vol.Schema({
                 vol.Required(
                     "dimming_mode",

@@ -5,7 +5,7 @@
     "step": {
       "user": {
         "title": "Velg mottaker",
-        "description": "Velg dimmeren som styrer taklampen. Skriv inn eksisterende nettverks-PIN og veggbryterens firesifrede mesh-ID fra opptakene.",
+        "description": "Velg dimmeren som styrer taklampen. For Stuelys er nettverks-PIN **{pin}** og veggbryterens mesh-ID **{switch_id}**. Begge er forhåndsutfylt og kan endres.",
         "data": {
           "address": "Bluetooth-mottaker",
           "password": "Nettverks-PIN",
@@ -99,14 +99,14 @@
     "step": {
       "init": {
         "title": "Lysstyrke",
-        "description": "Aktiver lysstyrke etter AV/PÅ-testen. Oppsettet leser mottakerens navn, mesh-adresse og status. Lysstyrkekontrollen setter en prosentverdi og leser resultatet tilbake. Fjern krysset for kun AV/PÅ. {detail}",
+        "description": "Aktiver lysstyrke etter AV/PÅ-testen. Oppsettet leser mottakerens navn, mesh-adresse og status. Lysstyrkekontrollen setter en prosentverdi og leser resultatet tilbake. Fjern krysset for kun AV/PÅ. {detail}\n\nStandardverdier for Stuelys er PIN **{pin}** og bryter-ID **{switch_id}**.",
         "data": {
           "dimming": "Aktiver lysstyrke"
         }
       },
       "advertised_dimming": {
         "title": "Velg dimming",
-        "description": "Prøv lysstyrke i prosent for å få en skyveknapp. Hvis lampen bare reagerer på de samme dimmekommandoene som veggbryteren sender, velger du Dim opp og ned.",
+        "description": "Prøv lysstyrke i prosent for å få en skyveknapp. Hvis lampen bare reagerer på de samme dimmekommandoene som veggbryteren sender, velger du Dim opp og ned.\n\nStandardverdier for Stuelys er PIN **{pin}** og bryter-ID **{switch_id}**.",
         "data": {
           "dimming_mode": "Dimmemåte"
         }

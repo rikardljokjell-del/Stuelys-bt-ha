@@ -14,5 +14,5 @@
   "documentation": "https://github.com/rikardljokjell-del/Stuelys-bt-ha",
   "iot_class": "local_polling",
   "requirements": ["recsrmesh==0.3.0"],
-  "version": "0.4.1"
+  "version": "0.4.2"
 }

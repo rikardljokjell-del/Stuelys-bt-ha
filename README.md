@@ -30,7 +30,7 @@ På mobil med Zipper i Studio Code Server kan du laste opp installasjonsfilen ti
 
 ## Første test på lampen
 
-1. Velg mottakerens navn og MAC-adresse. Skriv inn PIN-en og veggbryterens heksadesimale mesh-ID. Denne ID-en er avsenderen i bryterens datapakker. Den kan avvike fra de siste sifrene i mottakerens MAC-adresse. Under **Sendemåte** velger du hvordan Home Assistant skal sende kommandoene.
+1. Velg mottakerens navn og MAC-adresse. Veiviseren viser og forhåndsutfyller Stuelys-verdiene PIN `1234` og bryterens mesh-ID `C3F7`. Feltene kan endres. Mesh-ID-en er avsenderen i bryterens datapakker. Under **Sendemåte** velger du hvordan Home Assistant skal sende kommandoene.
 2. Når **Trykk PÅ på veggbryteren** vises, gi PÅ-knappen et kort trykk. Trykk deretter **Send inn**. En fersk PÅ-melding fra den oppgitte bryteren må bestå HMAC-kontrollen. Meldingen gir Home Assistant riktig gruppe og steds-ID.
 3. Sørg for at taklampen lyser. Start **Test AV** og deretter **Test PÅ** mens du ser på lampen. Testen bruker samme gruppe som veggbryteren. Hvis bryteren styrer flere lamper, kan alle reagere.
 4. Bekreft begge synlige endringer for å opprette lysentiteten. Hvis en av testene feilet, la krysset stå tomt og trykk **Send inn**. Med GATT får du tilbud om å prøve direkte styring når mottakeren kan identifiseres. Ved bekreftelse lagres sendemåten lampen reagerte på.
