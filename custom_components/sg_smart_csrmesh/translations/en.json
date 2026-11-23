@@ -18,15 +18,34 @@
       },
       "off": {
         "title": "Test OFF",
-        "description": "Watch the ceiling light. Submit to send OFF to the wall switch's group {group} via {name}. Other lights in that group can also turn off. {detail}"
+        "description": "Make sure the ceiling light is on before starting the test. Submit to send OFF to the wall switch's group {group} via {name}. Other lights in that group can also turn off. {detail}"
       },
       "on": {
         "title": "Test ON",
-        "description": "Continue only after you see the correct lamp turn off. Submit to send ON to group {group} via {name}. If the lamp stayed on, cancel setup. {detail}"
+        "description": "Submit to send ON to group {group} via {name}. The next step asks you to confirm whether the lamp responded. {detail}"
       },
       "confirm": {
         "title": "Did the ceiling light respond?",
-        "description": "Select the checkbox if the intended lamp turned off and then on. Submit with the box clear to repeat the test.",
+        "description": "Select the checkbox if the intended lamp turned off and then on. If either test failed, submit with the box clear to try direct control.",
+        "data": {
+          "observed": "I saw the intended lamp turn off and then on"
+        }
+      },
+      "direct": {
+        "title": "Try direct control",
+        "description": "Submit to ask {name} for an authenticated name reply. The reply gives Home Assistant the receiver's mesh address. {detail}"
+      },
+      "direct_off": {
+        "title": "Test direct OFF",
+        "description": "Turn the lamp on at the wall if needed. Submit to send OFF directly to {name}. Watch for the ceiling light to turn off. {detail}"
+      },
+      "direct_on": {
+        "title": "Test direct ON",
+        "description": "Submit to send ON directly to {name}. Watch for the ceiling light to turn on. {detail}"
+      },
+      "direct_confirm": {
+        "title": "Did the lamp respond to direct control?",
+        "description": "Select the checkbox if the intended lamp turned off and then on. Leave it clear if either test failed.",
         "data": {
           "observed": "I saw the intended lamp turn off and then on"
         }
@@ -35,12 +54,14 @@
     "error": {
       "invalid_id": "Enter 1–4 hexadecimal digits.",
       "no_press": "No matching ON message yet. Press ON again. Check the switch ID, passphrase and Bluetooth range.",
-      "ble_failed": "Bluetooth test failed. See the details above and the Home Assistant log."
+      "ble_failed": "Bluetooth test failed. See the details above and the Home Assistant log.",
+      "no_name_reply": "Could not identify the receiver over Bluetooth. See the details above."
     },
     "abort": {
       "already_configured": "This receiver is already configured.",
       "not_pill": "This device is not a recognized @MC dimmer.",
-      "no_devices": "Home Assistant has not seen a connectable @MC dimmer advertising FEF1. Close the SG phone app, check Bluetooth and try again."
+      "no_devices": "Home Assistant has not seen a connectable @MC dimmer advertising FEF1. Close the SG phone app, check Bluetooth and try again.",
+      "no_lamp_response": "The GATT writes completed, but the lamp did not respond as expected to direct control."
     }
   },
   "options": {

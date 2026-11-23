@@ -18,15 +18,34 @@
       },
       "off": {
         "title": "Test AV",
-        "description": "Se på taklampen. Trykk Send inn for å sende AV til veggbryterens gruppe {group} via {name}. Andre lamper i samme gruppe kan også slukke. {detail}"
+        "description": "Sørg for at taklampen lyser før du tester. Trykk Send inn for å sende AV til veggbryterens gruppe {group} via {name}. Andre lamper i samme gruppe kan også slukke. {detail}"
       },
       "on": {
         "title": "Test PÅ",
-        "description": "Fortsett når du har sett at riktig lampe slukket. Trykk Send inn for å sende PÅ til gruppe {group} via {name}. Avbryt oppsettet hvis lampen fortsatt lyser. {detail}"
+        "description": "Trykk Send inn for å sende PÅ til gruppe {group} via {name}. Du blir bedt om å bekrefte lampens respons etterpå. {detail}"
       },
       "confirm": {
         "title": "Reagerte taklampen?",
-        "description": "Kryss av hvis riktig lampe slukket og deretter tente. La feltet stå tomt og trykk Send inn for å gjenta testen.",
+        "description": "Kryss av hvis riktig lampe slukket og deretter tente. Hvis lampen ikke reagerte begge ganger, lar du feltet stå tomt og trykker Send inn for å prøve direkte styring av mottakeren.",
+        "data": {
+          "observed": "Jeg så at riktig lampe slukket og deretter tente"
+        }
+      },
+      "direct": {
+        "title": "Prøv direkte styring",
+        "description": "Trykk Send inn for å be {name} om et autentisert navnesvar. Svaret gir Home Assistant mottakerens mesh-adresse. {detail}"
+      },
+      "direct_off": {
+        "title": "Test AV direkte",
+        "description": "Slå på lampen med veggbryteren hvis den er av. Trykk Send inn for å sende AV direkte til {name}. Se om taklampen slukker. {detail}"
+      },
+      "direct_on": {
+        "title": "Test PÅ direkte",
+        "description": "Trykk Send inn for å sende PÅ direkte til {name}. Se om taklampen tenner. {detail}"
+      },
+      "direct_confirm": {
+        "title": "Reagerte lampen på direkte styring?",
+        "description": "Kryss av hvis riktig lampe slukket og deretter tente. La feltet stå tomt hvis en av testene feilet.",
         "data": {
           "observed": "Jeg så at riktig lampe slukket og deretter tente"
         }
@@ -35,12 +54,14 @@
     "error": {
       "invalid_id": "Oppgi 1–4 heksadesimale sifre.",
       "no_press": "Mangler en PÅ-melding fra bryteren. Trykk PÅ igjen. Sjekk bryter-ID, PIN og Bluetooth-rekkevidde.",
-      "ble_failed": "Bluetooth-testen feilet. Se detaljene over og loggen i Home Assistant."
+      "ble_failed": "Bluetooth-testen feilet. Se detaljene over og loggen i Home Assistant.",
+      "no_name_reply": "Kunne ikke identifisere mottakeren via Bluetooth. Se detaljene over."
     },
     "abort": {
       "already_configured": "Mottakeren er allerede konfigurert.",
       "not_pill": "Enheten ble ikke gjenkjent som en @MC-dimmer.",
-      "no_devices": "Home Assistant ser ingen tilkoblingsbar @MC-dimmer med FEF1. Lukk SG-appen på mobilen, sjekk Bluetooth og prøv igjen."
+      "no_devices": "Home Assistant ser ingen tilkoblingsbar @MC-dimmer med FEF1. Lukk SG-appen på mobilen, sjekk Bluetooth og prøv igjen.",
+      "no_lamp_response": "GATT-skrivingene ble fullført, men lampen reagerte ikke som forventet på direkte styring."
     }
   },
   "options": {

@@ -17,6 +17,8 @@ from .protocol import (
 )
 
 _LOGGER = logging.getLogger(__name__)
+FRAGMENT_DELAY = 0.025
+WRITE_SETTLE_TIME = 0.25
 
 
 class MeshError(HomeAssistantError):
@@ -39,7 +41,10 @@ class Link:
         parts = [(self.high, packet)]
         if len(packet) > 20:
             parts = [(self.low, packet[:20]), (self.high, packet[20:])]
-        for char, chunk in parts:
+        for index, (char, chunk) in enumerate(parts):
+            if index:
+                # Give the receiver time to process 8003 before writing 8004.
+                await asyncio.sleep(FRAGMENT_DELAY)
             if not {"write", "write-without-response"}.intersection(char.properties):
                 raise MeshError(f"GATT characteristic {char.uuid} is not writable")
             try:
@@ -64,7 +69,7 @@ class Link:
         await self.client.start_notify(self.high, high_notify)
         await self.write(packet)
         # Disconnecting at the end of the operation releases both subscriptions.
-        async with asyncio.timeout(5):
+        async with asyncio.timeout(8):
             while True:
                 decoded = decrypt_packet(key, await frames.get())
                 if decoded is not None:
@@ -79,6 +84,7 @@ class Lamp:
         self.name = settings["name"]
         self.address = settings["address"]
         self.group = settings["group"]
+        self.power_node = settings.get("power_node")
         self.location = bytes.fromhex(settings["location"])
         self.key = network_key(settings["password"])
         self.seq = random_seq()
@@ -111,9 +117,18 @@ class Lamp:
             raise MeshError(f"{self.name} [{self.address}] {action}: {reason}") from err
 
     async def power(self, on):
-        async with self.lock, self.connection("group ON" if on else "group OFF") as link:
-            data = power_command(self.location, on, self.next_tid())
-            await link.write(self.packet(self.group, data))
+        target = self.power_node if self.power_node is not None else self.group
+        target_type = "node" if self.power_node is not None else "group"
+        action = f"FF03 {'ON' if on else 'OFF'} to {target_type} {target:04X}"
+        async with self.lock, self.connection(action) as link:
+            tid = self.next_tid()
+            if self.power_node is None:
+                data = power_command(self.location, on, tid)
+            else:
+                data = level_command(self.location, on, 0, tid)
+            await link.write(self.packet(target, data))
+            _LOGGER.debug("%s [%s] %s written to GATT", self.name, self.address, action)
+            await asyncio.sleep(WRITE_SETTLE_TIME)
 
     async def identify(self):
         """Resolve the receiver's mesh source from its authenticated name reply."""
@@ -136,8 +151,9 @@ class Lamp:
     async def set_level(self, node, percent):
         async with self.lock:
             async with self.connection("FF03 brightness write") as link:
-                data = level_command(self.location, percent, self.next_tid())
+                data = level_command(self.location, True, percent, self.next_tid())
                 await link.write(self.packet(node, data))
+                await asyncio.sleep(WRITE_SETTLE_TIME)
             # Read on a fresh link after the dimmer has had time to change.
             await asyncio.sleep(1)
             async with self.connection("FF05 brightness read-back") as link:

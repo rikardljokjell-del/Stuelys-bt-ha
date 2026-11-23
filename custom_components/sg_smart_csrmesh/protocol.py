@@ -31,11 +31,9 @@ def power_command(location: bytes, on: bool, tid: int) -> bytes:
     return b"\xff\x03" + location + bytes([on, 0, tid & 0xFF])
 
 
-def level_command(location: bytes, percent: int, tid: int) -> bytes:
+def level_command(location: bytes, on: bool, percent: int, tid: int) -> bytes:
     """SG's direct device command (two-byte transaction ID, white channel zero)."""
-    if not 1 <= percent <= 100:
-        raise ValueError("Expected a brightness between 1 and 100 percent")
-    return b"\xff\x03" + location + bytes([1, percent]) + tid.to_bytes(2, "little") + b"\x00"
+    return b"\xff\x03" + location + bytes([on, percent]) + tid.to_bytes(2, "little") + b"\x00"
 
 
 def device_name(source: int, data: bytes, location: bytes, name: str):

@@ -126,8 +126,9 @@ class SGConfigFlow(ConfigFlow, domain=DOMAIN):
                 detail = str(err)
             else:
                 return await next_step()
+        step_id = f"direct_{step}" if self.lamp.power_node is not None else step
         return self.async_show_form(
-            step_id=step, data_schema=vol.Schema({}),
+            step_id=step_id, data_schema=vol.Schema({}),
             errors={"base": "ble_failed"} if detail else {},
             description_placeholders={"detail": detail, "name": self.settings["name"],
                                       "group": f'{self.settings["group"]:04X}'},
@@ -139,15 +140,45 @@ class SGConfigFlow(ConfigFlow, domain=DOMAIN):
     async def async_step_on(self, user_input=None):
         return await self._test("on", user_input, True, self.async_step_confirm)
 
+    async def async_step_direct(self, user_input=None):
+        detail = ""
+        if user_input is not None:
+            try:
+                node = await self.lamp.identify()
+            except MeshError as err:
+                detail = str(err)
+            else:
+                self.settings["power_node"] = self.lamp.power_node = node
+                return await self.async_step_direct_off()
+        return self.async_show_form(
+            step_id="direct", data_schema=vol.Schema({}),
+            errors={"base": "no_name_reply"} if detail else {},
+            description_placeholders={"name": self.settings["name"], "detail": detail},
+        )
+
+    async def async_step_direct_off(self, user_input=None):
+        return await self._test("off", user_input, False, self.async_step_direct_on)
+
+    async def async_step_direct_on(self, user_input=None):
+        return await self._test("on", user_input, True, self.async_step_confirm)
+
     async def async_step_confirm(self, user_input=None):
         if user_input is not None:
             if user_input["observed"]:
                 return self.async_create_entry(title=self.settings["name"], data=self.settings)
-            return await self.async_step_off()
+            if self.lamp.power_node is None:
+                _LOGGER.info("%s did not respond to the group power test", self.lamp.name)
+                return await self.async_step_direct()
+            _LOGGER.warning("%s did not respond to the direct power test", self.lamp.name)
+            return self.async_abort(reason="no_lamp_response")
+        step_id = "confirm" if self.lamp.power_node is None else "direct_confirm"
         return self.async_show_form(
-            step_id="confirm",
+            step_id=step_id,
             data_schema=vol.Schema({vol.Required("observed", default=False): bool}),
         )
+
+    async def async_step_direct_confirm(self, user_input=None):
+        return await self.async_step_confirm(user_input)
 
     @staticmethod
     @callback
@@ -163,7 +194,7 @@ class SGOptionsFlow(OptionsFlow):
                 return self.async_create_entry(title="", data={})
             lamp = self.config_entry.runtime_data
             try:
-                node = await lamp.identify()
+                node = lamp.power_node if lamp.power_node is not None else await lamp.identify()
                 await lamp.status(node)
             except MeshError as err:
                 detail = str(err)

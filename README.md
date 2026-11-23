@@ -4,6 +4,10 @@
 
 ## Installasjon
 
+På mobil med Zipper i Studio Code Server kan du laste opp installasjonsfilen til `/config/custom_components/` og velge **Extract** på ZIP-filen. Zipper lager mappen `sg_smart_csrmesh` med `manifest.json` rett inni. Flytt en eventuell eldre `sg_smart_csrmesh`-mappe ut av `custom_components` før du pakker ut. Start Home Assistant på nytt og fortsett i **Enheter og tjenester**. [Last ned installasjonsfilen](https://github.com/rikardljokjell-del/Stuelys-bt-ha/releases/download/v0.2.0/sg_smart_csrmesh.zip)
+
+### Manuell kopiering
+
 1. [Last ned repoet som ZIP](https://github.com/rikardljokjell-del/Stuelys-bt-ha/archive/refs/heads/main.zip) og pakk det ut.
 2. Kopier hele mappen `custom_components/sg_smart_csrmesh` til `/config/custom_components/` på Home Assistant. Sjekk at `manifest.json` ligger direkte under `/config/custom_components/sg_smart_csrmesh/`.
 3. Start **Home Assistant** på nytt. Home Assistant installerer `recsrmesh==0.3.0` automatisk. Bluetooth-integrasjonen må ha en aktiv adapter som støtter tilkobling og som når både veggbryteren og mottakeren.
@@ -26,8 +30,10 @@
 
 1. Velg mottakerens navn og MAC-adresse. Skriv inn PIN-en og veggbryterens heksadesimale mesh-ID. Denne ID-en er avsenderen i bryterens datapakker. Den kan avvike fra de siste sifrene i mottakerens MAC-adresse.
 2. Når **Trykk PÅ på veggbryteren** vises, gi PÅ-knappen et kort trykk. Trykk deretter **Send inn**. En fersk PÅ-melding fra den oppgitte bryteren må bestå HMAC-kontrollen. Meldingen gir Home Assistant riktig gruppe og steds-ID.
-3. Se på taklampen. Start **Test AV** og se at den slukker. Start så **Test PÅ** og se at den tenner. Testen bruker samme gruppe som veggbryteren. Hvis bryteren styrer flere lamper, kan alle reagere.
-4. Bekreft begge synlige endringer for å opprette lysentiteten. En ferdig BLE-skriving alene er utilstrekkelig som bekreftelse. I AV/PÅ-modus viser entiteten antatt tilstand fra siste HA-kommando eller mottatte AV/PÅ-trykk. Etter omstart står den som ukjent fram til neste kommando.
+3. Sørg for at taklampen lyser. Start **Test AV** og deretter **Test PÅ** mens du ser på lampen. Testen bruker samme gruppe som veggbryteren. Hvis bryteren styrer flere lamper, kan alle reagere.
+4. Bekreft begge synlige endringer for å opprette lysentiteten. Hvis en av testene feilet, la krysset stå tomt og trykk **Send inn**. Velg **Prøv direkte styring**, og gjenta testen når mottakeren har identifisert seg. Ved bekreftelse lagres den styringsmåten lampen reagerte på.
+
+I AV/PÅ-modus viser entiteten antatt tilstand fra siste HA-kommando eller mottatte AV/PÅ-trykk. Etter omstart står den som ukjent fram til neste kommando.
 
 ## Lysstyrke
 
@@ -42,7 +48,7 @@ Prøv for eksempel 30 % og deretter 70 %. Se på lampen ved begge nivåene. Inte
 | Ingen mottaker i listen | Se etter mottakerens `@MC`-navn og tjeneste `FEF1` i Bluetooth-integrasjonens annonsemonitor. Kontroller rekkevidde og lukk SG-appen. |
 | Oppsettet venter på PÅ | Bruk et kort PÅ-trykk mens oppsettssiden er åpen. Kontroller bryterens mesh-ID og PIN. De korte knappemeldingene kan ha skiftende BLE-adresser. |
 | AV/PÅ gir BLE-feil | Åpne **Innstillinger → System → Logger** og søk etter `sg_smart_csrmesh`. Loggen viser mottaker, handling og feil fra BLE, for eksempel en manglende GATT-karakteristikk eller tidsavbrudd. |
-| Skrivingen gikk gjennom, men lampen reagerte ikke | Avbryt testen. Kontroller valgt mottaker og at samme fysiske knapp faktisk styrer lampen. Et GATT-svar bekrefter bare overføringen til mottakeren. |
+| Skrivingen gikk gjennom, men lampen reagerte ikke | Fullfør de to teststegene og la bekreftelsesboksen stå tom. Da får du prøve direkte styring. Et GATT-svar bekrefter bare overføringen til mottakeren. |
 | Lysstyrketesten mangler svar | `FF11` er navnesvaret, `FF05` er status. AV/PÅ kan brukes selv om denne firmwareversjonen ikke svarer på forespørslene. |
 
 ## Hva opptakene og kildene viser
