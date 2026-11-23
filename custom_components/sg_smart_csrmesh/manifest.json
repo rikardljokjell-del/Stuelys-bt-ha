@@ -1,0 +1,18 @@
+{
+  "domain": "sg_smart_csrmesh",
+  "name": "SG Smart CSRmesh",
+  "bluetooth": [
+    {
+      "local_name": "@MC????",
+      "service_uuid": "0000fef1-0000-1000-8000-00805f9b34fb",
+      "connectable": true
+    }
+  ],
+  "codeowners": ["@rikardljokjell-del"],
+  "config_flow": true,
+  "dependencies": ["bluetooth"],
+  "documentation": "https://github.com/rikardljokjell-del/Stuelys-bt-ha",
+  "iot_class": "local_polling",
+  "requirements": ["recsrmesh==0.3.0"],
+  "version": "0.1.0"
+}

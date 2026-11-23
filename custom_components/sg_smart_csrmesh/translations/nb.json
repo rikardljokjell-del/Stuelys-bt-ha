@@ -1,0 +1,60 @@
+{
+  "title": "SG Smart CSRmesh",
+  "config": {
+    "flow_title": "SG Smart {name}",
+    "step": {
+      "user": {
+        "title": "Velg mottaker",
+        "description": "Velg dimmeren som styrer taklampen. Skriv inn eksisterende nettverks-PIN og veggbryterens firesifrede mesh-ID fra opptakene.",
+        "data": {
+          "address": "Bluetooth-mottaker",
+          "password": "Nettverks-PIN",
+          "switch_id": "Veggbryterens mesh-ID (heksadesimal)"
+        }
+      },
+      "learn": {
+        "title": "Trykk PÅ på veggbryteren",
+        "description": "Gi den fysiske PÅ-knappen et kort trykk nå. Når lampen lyser, trykker du Send inn. Home Assistant leser gruppe og steds-ID fra den ferske, autentiserte meldingen."
+      },
+      "off": {
+        "title": "Test AV",
+        "description": "Se på taklampen. Trykk Send inn for å sende AV til veggbryterens gruppe {group} via {name}. Andre lamper i samme gruppe kan også slukke. {detail}"
+      },
+      "on": {
+        "title": "Test PÅ",
+        "description": "Fortsett når du har sett at riktig lampe slukket. Trykk Send inn for å sende PÅ til gruppe {group} via {name}. Avbryt oppsettet hvis lampen fortsatt lyser. {detail}"
+      },
+      "confirm": {
+        "title": "Reagerte taklampen?",
+        "description": "Kryss av hvis riktig lampe slukket og deretter tente. La feltet stå tomt og trykk Send inn for å gjenta testen.",
+        "data": {
+          "observed": "Jeg så at riktig lampe slukket og deretter tente"
+        }
+      }
+    },
+    "error": {
+      "invalid_id": "Oppgi 1–4 heksadesimale sifre.",
+      "no_press": "Mangler en PÅ-melding fra bryteren. Trykk PÅ igjen. Sjekk bryter-ID, PIN og Bluetooth-rekkevidde.",
+      "ble_failed": "Bluetooth-testen feilet. Se detaljene over og loggen i Home Assistant."
+    },
+    "abort": {
+      "already_configured": "Mottakeren er allerede konfigurert.",
+      "not_pill": "Enheten ble ikke gjenkjent som en @MC-dimmer.",
+      "no_devices": "Home Assistant ser ingen tilkoblingsbar @MC-dimmer med FEF1. Lukk SG-appen på mobilen, sjekk Bluetooth og prøv igjen."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Lysstyrke",
+        "description": "Aktiver lysstyrke etter AV/PÅ-testen. Oppsettet leser mottakerens navn, mesh-adresse og status. Lysstyrkekontrollen setter en prosentverdi og leser resultatet tilbake. Fjern krysset for kun AV/PÅ. {detail}",
+        "data": {
+          "dimming": "Aktiver lysstyrke"
+        }
+      }
+    },
+    "error": {
+      "no_status": "Kunne ikke verifisere navn og status fra mottakeren. AV/PÅ kan fortsatt brukes. Se detaljene over."
+    }
+  }
+}

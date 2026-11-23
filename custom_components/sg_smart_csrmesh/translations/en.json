@@ -1,0 +1,60 @@
+{
+  "title": "SG Smart CSRmesh",
+  "config": {
+    "flow_title": "SG Smart {name}",
+    "step": {
+      "user": {
+        "title": "Choose the receiver",
+        "description": "Choose the dimmer that controls the ceiling light. Enter the existing mesh passphrase and the switch's four-digit hexadecimal source ID from the captures.",
+        "data": {
+          "address": "Bluetooth receiver",
+          "password": "Mesh passphrase",
+          "switch_id": "Wall switch mesh ID (hex)"
+        }
+      },
+      "learn": {
+        "title": "Press ON on the wall switch",
+        "description": "Briefly press ON on the physical switch now. Wait until the lamp is on, then select Submit. This learns the group and location from a fresh authenticated switch message."
+      },
+      "off": {
+        "title": "Test OFF",
+        "description": "Watch the ceiling light. Submit to send OFF to the wall switch's group {group} via {name}. Other lights in that group can also turn off. {detail}"
+      },
+      "on": {
+        "title": "Test ON",
+        "description": "Continue only after you see the correct lamp turn off. Submit to send ON to group {group} via {name}. If the lamp stayed on, cancel setup. {detail}"
+      },
+      "confirm": {
+        "title": "Did the ceiling light respond?",
+        "description": "Select the checkbox if the intended lamp turned off and then on. Submit with the box clear to repeat the test.",
+        "data": {
+          "observed": "I saw the intended lamp turn off and then on"
+        }
+      }
+    },
+    "error": {
+      "invalid_id": "Enter 1–4 hexadecimal digits.",
+      "no_press": "No matching ON message yet. Press ON again. Check the switch ID, passphrase and Bluetooth range.",
+      "ble_failed": "Bluetooth test failed. See the details above and the Home Assistant log."
+    },
+    "abort": {
+      "already_configured": "This receiver is already configured.",
+      "not_pill": "This device is not a recognized @MC dimmer.",
+      "no_devices": "Home Assistant has not seen a connectable @MC dimmer advertising FEF1. Close the SG phone app, check Bluetooth and try again."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Brightness",
+        "description": "Enable brightness after the ON/OFF test. Setup reads the receiver's name, mesh address and status. The slider uses absolute percent and reads back the result. Clear the checkbox for ON/OFF only. {detail}",
+        "data": {
+          "dimming": "Enable brightness"
+        }
+      }
+    },
+    "error": {
+      "no_status": "Could not verify the receiver's name and status. ON/OFF remains usable. See the details above."
+    }
+  }
+}
