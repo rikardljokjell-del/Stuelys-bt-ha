@@ -1,5 +1,6 @@
 """Learn the existing switch route and test the light before offering dimming."""
 
+import asyncio
 import logging
 import re
 from time import monotonic
@@ -33,6 +34,8 @@ class SGConfigFlow(ConfigFlow, domain=DOMAIN):
         self.settings = {}
         self.lamp = None
         self.unsubscribe = None
+        self.read_back = False
+        self.test_status = {}
 
     async def async_step_bluetooth(self, discovery_info):
         if not is_pill(discovery_info):
@@ -125,6 +128,15 @@ class SGConfigFlow(ConfigFlow, domain=DOMAIN):
             except MeshError as err:
                 detail = str(err)
             else:
+                if self.read_back and self.lamp.power_node is not None:
+                    await asyncio.sleep(1)
+                    try:
+                        percent = await self.lamp.status(self.lamp.power_node)
+                    except MeshError as err:
+                        self.test_status[step] = str(err)
+                    else:
+                        self.test_status[step] = f"FF05: {percent} %"
+                        _LOGGER.debug("%s direct %s test read back %d%%", self.lamp.name, step, percent)
                 return await next_step()
         step_id = f"direct_{step}" if self.lamp.power_node is not None else step
         return self.async_show_form(
@@ -149,9 +161,11 @@ class SGConfigFlow(ConfigFlow, domain=DOMAIN):
                 detail = str(err)
             else:
                 self.settings["power_node"] = self.lamp.power_node = node
+                self.read_back = user_input["read_back"]
                 return await self.async_step_direct_off()
         return self.async_show_form(
-            step_id="direct", data_schema=vol.Schema({}),
+            step_id="direct",
+            data_schema=vol.Schema({vol.Required("read_back", default=True): bool}),
             errors={"base": "no_name_reply"} if detail else {},
             description_placeholders={"name": self.settings["name"], "detail": detail},
         )
@@ -163,18 +177,26 @@ class SGConfigFlow(ConfigFlow, domain=DOMAIN):
         return await self._test("on", user_input, True, self.async_step_confirm)
 
     async def async_step_confirm(self, user_input=None):
+        report = {
+            "off_status": self.test_status.get("off", "—"),
+            "on_status": self.test_status.get("on", "—"),
+        }
         if user_input is not None:
             if user_input["observed"]:
                 return self.async_create_entry(title=self.settings["name"], data=self.settings)
             if self.lamp.power_node is None:
                 _LOGGER.info("%s did not respond to the group power test", self.lamp.name)
                 return await self.async_step_direct()
-            _LOGGER.warning("%s did not respond to the direct power test", self.lamp.name)
-            return self.async_abort(reason="no_lamp_response")
+            _LOGGER.warning(
+                "%s did not respond to the direct power test. OFF %s | ON %s",
+                self.lamp.name, report["off_status"], report["on_status"],
+            )
+            return self.async_abort(reason="no_lamp_response", description_placeholders=report)
         step_id = "confirm" if self.lamp.power_node is None else "direct_confirm"
         return self.async_show_form(
             step_id=step_id,
             data_schema=vol.Schema({vol.Required("observed", default=False): bool}),
+            description_placeholders=report,
         )
 
     async def async_step_direct_confirm(self, user_input=None):

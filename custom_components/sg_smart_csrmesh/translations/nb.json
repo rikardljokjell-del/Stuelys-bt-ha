@@ -33,7 +33,10 @@
       },
       "direct": {
         "title": "Prøv direkte styring",
-        "description": "Trykk Send inn for å be {name} om et autentisert navnesvar. Svaret gir Home Assistant mottakerens mesh-adresse. {detail}"
+        "description": "Trykk Send inn for å be {name} om et autentisert navnesvar. Svaret gir Home Assistant mottakerens mesh-adresse. Med diagnostikk leses også rapportert lysstyrke etter hver direkte test. {detail}",
+        "data": {
+          "read_back": "Les lampestatus etter hver test"
+        }
       },
       "direct_off": {
         "title": "Test AV direkte",
@@ -45,7 +48,7 @@
       },
       "direct_confirm": {
         "title": "Reagerte lampen på direkte styring?",
-        "description": "Kryss av hvis riktig lampe slukket og deretter tente. La feltet stå tomt hvis en av testene feilet.",
+        "description": "Kryss av hvis riktig lampe slukket og deretter tente. La feltet stå tomt hvis en av testene feilet.\n\nEtter AV → {off_status}\n\nEtter PÅ → {on_status}",
         "data": {
           "observed": "Jeg så at riktig lampe slukket og deretter tente"
         }
@@ -61,7 +64,7 @@
       "already_configured": "Mottakeren er allerede konfigurert.",
       "not_pill": "Enheten ble ikke gjenkjent som en @MC-dimmer.",
       "no_devices": "Home Assistant ser ingen tilkoblingsbar @MC-dimmer med FEF1. Lukk SG-appen på mobilen, sjekk Bluetooth og prøv igjen.",
-      "no_lamp_response": "GATT-skrivingene ble fullført, men lampen reagerte ikke som forventet på direkte styring."
+      "no_lamp_response": "GATT-skrivingene ble fullført, men lampen reagerte ikke som forventet på direkte styring.\n\nEtter AV → {off_status}\n\nEtter PÅ → {on_status}"
     }
   },
   "options": {

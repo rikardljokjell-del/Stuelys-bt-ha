@@ -13,12 +13,13 @@ from recsrmesh.ble import CHARACTERISTIC_HIGH, CHARACTERISTIC_LOW, SERVICE_UUID
 from recsrmesh.mcp_crypto import decrypt_packet, make_packet, random_seq
 
 from .protocol import (
-    FEF1, device_name, device_status, level_command, network_key, power_command,
+    APP, FEF1, device_name, device_status, level_command, network_key, power_command,
 )
 
 _LOGGER = logging.getLogger(__name__)
 FRAGMENT_DELAY = 0.025
 WRITE_SETTLE_TIME = 0.25
+REPLY_TIMEOUT = 8
 
 
 class MeshError(HomeAssistantError):
@@ -47,35 +48,57 @@ class Link:
                 await asyncio.sleep(FRAGMENT_DELAY)
             if not {"write", "write-without-response"}.intersection(char.properties):
                 raise MeshError(f"GATT characteristic {char.uuid} is not writable")
+            response = "write" in char.properties
+            _LOGGER.debug("GATT write %s, %d bytes, response=%s", char.uuid, len(chunk), response)
             try:
-                await self.client.write_gatt_char(char, chunk, response="write" in char.properties)
+                await self.client.write_gatt_char(char, chunk, response=response)
             except (BleakError, OSError, EOFError) as err:
                 raise MeshError(f"GATT write {char.uuid}: {err or type(err).__name__}") from err
 
     async def request(self, packet, key, match):
         frames = asyncio.Queue()
         first = b""
+        low_count = high_count = authenticated = echoes = 0
 
         def low_notify(_, data):
-            nonlocal first
+            nonlocal first, low_count
+            low_count += 1
             first = bytes(data)
 
         def high_notify(_, data):
-            nonlocal first
+            nonlocal first, high_count
+            high_count += 1
             frames.put_nowait(first + bytes(data))
             first = b""
 
-        await self.client.start_notify(self.low, low_notify)
-        await self.client.start_notify(self.high, high_notify)
+        for char, handler in ((self.low, low_notify), (self.high, high_notify)):
+            try:
+                await self.client.start_notify(char, handler)
+            except (BleakError, OSError, EOFError) as err:
+                raise MeshError(f"GATT subscribe {char.uuid}: {err or type(err).__name__}") from err
         await self.write(packet)
         # Disconnecting at the end of the operation releases both subscriptions.
-        async with asyncio.timeout(8):
-            while True:
-                decoded = decrypt_packet(key, await frames.get())
-                if decoded is not None:
-                    result = match(decoded["source"], decoded["decpayload"])
+        try:
+            async with asyncio.timeout(REPLY_TIMEOUT):
+                while True:
+                    decoded = decrypt_packet(key, await frames.get())
+                    if decoded is None:
+                        continue
+                    source, data = decoded["source"], decoded["decpayload"]
+                    if source == APP:
+                        echoes += 1
+                        continue
+                    authenticated += 1
+                    _LOGGER.debug("Authenticated mesh frame from %04X, opcode %s", source, data[2:4].hex())
+                    result = match(source, data)
                     if result is not None:
                         return result
+        except TimeoutError as err:
+            raise MeshError(
+                f"No matching reply after {REPLY_TIMEOUT} s. "
+                f"Notifications 8003={low_count}, 8004={high_count}, "
+                f"authenticated mesh frames={authenticated}, local echoes={echoes}."
+            ) from err
 
 
 class Lamp:
@@ -101,20 +124,23 @@ class Lamp:
 
     @asynccontextmanager
     async def connection(self, action):
+        stage = "Bluetooth lookup"
         try:
             device = bluetooth.async_ble_device_from_address(self.hass, self.address, connectable=True)
             if device is None:
                 raise MeshError("No connectable advertisement in Home Assistant Bluetooth")
             async with asyncio.timeout(25):
+                stage = "GATT connect"
                 client = await establish_connection(BleakClient, device, self.name, max_attempts=2)
                 try:
+                    stage = "GATT exchange"
                     yield Link(client)
                 finally:
                     await client.disconnect()
         except (BleakError, OSError, EOFError, TimeoutError, MeshError) as err:
             reason = str(err) or type(err).__name__
-            _LOGGER.warning("%s [%s] %s failed: %s", self.name, self.address, action, reason)
-            raise MeshError(f"{self.name} [{self.address}] {action}: {reason}") from err
+            _LOGGER.warning("%s [%s] %s failed (%s): %s", self.name, self.address, action, stage, reason)
+            raise MeshError(f"{self.name} [{self.address}] {action} ({stage}): {reason}") from err
 
     async def power(self, on):
         target = self.power_node if self.power_node is not None else self.group

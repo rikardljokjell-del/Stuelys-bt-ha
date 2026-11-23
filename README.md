@@ -4,7 +4,7 @@
 
 ## Installasjon
 
-På mobil med Zipper i Studio Code Server kan du laste opp installasjonsfilen til `/config/custom_components/` og velge **Extract** på ZIP-filen. Zipper lager mappen `sg_smart_csrmesh` med `manifest.json` rett inni. Flytt en eventuell eldre `sg_smart_csrmesh`-mappe ut av `custom_components` før du pakker ut. Start Home Assistant på nytt og fortsett i **Enheter og tjenester**. [Last ned installasjonsfilen](https://github.com/rikardljokjell-del/Stuelys-bt-ha/releases/download/v0.2.0/sg_smart_csrmesh.zip)
+På mobil med Zipper i Studio Code Server kan du laste opp installasjonsfilen til `/config/custom_components/` og velge **Extract** på ZIP-filen. Zipper lager mappen `sg_smart_csrmesh` med `manifest.json` rett inni. Flytt en eventuell eldre `sg_smart_csrmesh`-mappe ut av `custom_components` før du pakker ut. Start Home Assistant på nytt og fortsett i **Enheter og tjenester**. [Last ned installasjonsfilen](https://github.com/rikardljokjell-del/Stuelys-bt-ha/releases/latest/download/sg_smart_csrmesh.zip)
 
 ### Manuell kopiering
 
@@ -50,6 +50,8 @@ Prøv for eksempel 30 % og deretter 70 %. Se på lampen ved begge nivåene. Inte
 | AV/PÅ gir BLE-feil | Åpne **Innstillinger → System → Logger** og søk etter `sg_smart_csrmesh`. Loggen viser mottaker, handling og feil fra BLE, for eksempel en manglende GATT-karakteristikk eller tidsavbrudd. |
 | Skrivingen gikk gjennom, men lampen reagerte ikke | Fullfør de to teststegene og la bekreftelsesboksen stå tom. Da får du prøve direkte styring. Et GATT-svar bekrefter bare overføringen til mottakeren. |
 | Lysstyrketesten mangler svar | `FF11` er navnesvaret, `FF05` er status. AV/PÅ kan brukes selv om denne firmwareversjonen ikke svarer på forespørslene. |
+
+Under **Prøv direkte styring** kan du la **Les lampestatus etter hver test** stå på. Etter de to testene viser veiviseren rapportert lysstyrke eller feilen for hver lesing. `FF05: 0 %` betyr at mottakeren rapporterte AV. Hvis navne- eller statusforespørselen får tidsavbrudd, viser feilmeldingen antall GATT-varsler, autentiserte mesh-meldinger og ekko av Home Assistants egne meldinger. Send gjerne skjermbildet av dette resultatet ved feil. PIN og pakkedata er utelatt fra diagnosen.
 
 ## Hva opptakene og kildene viser
 

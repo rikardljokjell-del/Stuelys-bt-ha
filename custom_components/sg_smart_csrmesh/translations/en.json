@@ -33,7 +33,10 @@
       },
       "direct": {
         "title": "Try direct control",
-        "description": "Submit to ask {name} for an authenticated name reply. The reply gives Home Assistant the receiver's mesh address. {detail}"
+        "description": "Submit to ask {name} for an authenticated name reply. The reply gives Home Assistant the receiver's mesh address. Diagnostics also read the reported brightness after each direct test. {detail}",
+        "data": {
+          "read_back": "Read lamp status after each test"
+        }
       },
       "direct_off": {
         "title": "Test direct OFF",
@@ -45,7 +48,7 @@
       },
       "direct_confirm": {
         "title": "Did the lamp respond to direct control?",
-        "description": "Select the checkbox if the intended lamp turned off and then on. Leave it clear if either test failed.",
+        "description": "Select the checkbox if the intended lamp turned off and then on. Leave it clear if either test failed.\n\nAfter OFF → {off_status}\n\nAfter ON → {on_status}",
         "data": {
           "observed": "I saw the intended lamp turn off and then on"
         }
@@ -61,7 +64,7 @@
       "already_configured": "This receiver is already configured.",
       "not_pill": "This device is not a recognized @MC dimmer.",
       "no_devices": "Home Assistant has not seen a connectable @MC dimmer advertising FEF1. Close the SG phone app, check Bluetooth and try again.",
-      "no_lamp_response": "The GATT writes completed, but the lamp did not respond as expected to direct control."
+      "no_lamp_response": "The GATT writes completed, but the lamp did not respond as expected to direct control.\n\nAfter OFF → {off_status}\n\nAfter ON → {on_status}"
     }
   },
   "options": {
