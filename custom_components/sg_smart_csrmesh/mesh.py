@@ -4,12 +4,14 @@ import asyncio
 from collections import Counter
 from contextlib import asynccontextmanager
 import logging
+import sys
 
 from bleak import BleakClient
 from bleak.exc import BleakError
 from bleak_retry_connector import establish_connection
 from homeassistant.components import bluetooth
 from homeassistant.exceptions import HomeAssistantError
+from homeassistant.helpers.importlib import async_import_module
 from recsrmesh.ble import CHARACTERISTIC_HIGH, CHARACTERISTIC_LOW, SERVICE_UUID
 from recsrmesh.mcp_crypto import decrypt_packet, make_packet, random_seq
 
@@ -21,6 +23,8 @@ _LOGGER = logging.getLogger(__name__)
 FRAGMENT_DELAY = 0.025
 WRITE_SETTLE_TIME = 0.25
 REPLY_TIMEOUT = 8
+# In the switch captures, the same frame appears with TTL 0x32 and 0x31.
+ADVERTISEMENT_TTL = b"\x32"
 
 
 class MeshError(HomeAssistantError):
@@ -124,7 +128,10 @@ class Lamp:
         self.address = settings["address"]
         self.group = settings["group"]
         self.power_node = settings.get("power_node")
-        self.without_response = settings.get("without_response", False)
+        self.transport = settings.get("transport")
+        self.without_response = (
+            self.transport == "gatt_without_response" or settings.get("without_response", False)
+        )
         self.location = bytes.fromhex(settings["location"])
         self.key = network_key(settings["password"])
         self.seq = random_seq()
@@ -160,6 +167,10 @@ class Lamp:
             raise MeshError(f"{self.name} [{self.address}] {action} ({stage}): {reason}") from err
 
     async def power(self, on):
+        if self.transport == "advertisement":
+            async with self.lock:
+                await self._advertise_power(on)
+            return
         target = self.power_node if self.power_node is not None else self.group
         target_type = "node" if self.power_node is not None else "group"
         action = f"FF03 {'ON' if on else 'OFF'} to {target_type} {target:04X}"
@@ -172,6 +183,23 @@ class Lamp:
             await link.write(self.packet(target, data))
             _LOGGER.debug("%s [%s] %s written to GATT", self.name, self.address, action)
             await asyncio.sleep(WRITE_SETTLE_TIME)
+
+    async def _advertise_power(self, on):
+        action = f"FEF1 {'ON' if on else 'OFF'} advertisement to group {self.group:04X}"
+        try:
+            if sys.platform != "linux":
+                raise HomeAssistantError("BLE advertising requires a local Linux Bluetooth adapter")
+            advertiser = await async_import_module(self.hass, f"{__package__}.advertise")
+            info = bluetooth.async_last_service_info(self.hass, self.address, connectable=True)
+            data = power_command(self.location, on, self.next_tid())
+            packet = self.packet(self.group, data)
+            adapter = await advertiser.broadcast(
+                packet[:-1] + ADVERTISEMENT_TTL, info.source if info else None
+            )
+        except (HomeAssistantError, ImportError) as err:
+            _LOGGER.warning("%s [%s] %s failed: %s", self.name, self.address, action, err)
+            raise MeshError(f"{self.name} [{self.address}] {action}: {err}") from err
+        _LOGGER.debug("%s [%s] %s registered on %s", self.name, self.address, action, adapter)
 
     async def identify(self):
         """Resolve the receiver's mesh source from its authenticated name reply."""

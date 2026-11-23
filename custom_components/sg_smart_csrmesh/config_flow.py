@@ -13,7 +13,13 @@ except ImportError:  # Older Home Assistant versions
 from homeassistant.components import bluetooth
 from homeassistant.config_entries import ConfigFlow, OptionsFlow
 from homeassistant.core import callback
-from homeassistant.helpers.selector import TextSelector, TextSelectorConfig, TextSelectorType
+from homeassistant.helpers.selector import (
+    SelectSelector,
+    SelectSelectorConfig,
+    TextSelector,
+    TextSelectorConfig,
+    TextSelectorType,
+)
 
 from . import DOMAIN
 from .mesh import Lamp, MeshError
@@ -67,7 +73,7 @@ class SGConfigFlow(ConfigFlow, domain=DOMAIN):
                     "address": address, "name": devices[address],
                     "password": user_input["password"],
                     "switch_id": int(user_input["switch_id"].strip(), 16),
-                    "without_response": user_input.get("without_response", False),
+                    "transport": user_input.get("transport", "gatt"),
                 }
                 return await self.async_step_learn()
             errors["switch_id"] = "invalid_id"
@@ -77,7 +83,10 @@ class SGConfigFlow(ConfigFlow, domain=DOMAIN):
                 vol.Required("address", default=next(iter(choices))): vol.In(choices),
                 vol.Required("password"): TextSelector(TextSelectorConfig(type=TextSelectorType.PASSWORD)),
                 vol.Required("switch_id"): str,
-                vol.Optional("without_response", default=False): bool,
+                vol.Optional("transport", default="gatt"): SelectSelector(SelectSelectorConfig(
+                    options=["gatt", "gatt_without_response", "advertisement"],
+                    translation_key="transport",
+                )),
             }),
         )
 
@@ -186,6 +195,9 @@ class SGConfigFlow(ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             if user_input["observed"]:
                 return self.async_create_entry(title=self.settings["name"], data=self.settings)
+            if self.lamp.transport == "advertisement":
+                _LOGGER.warning("%s did not respond to the BLE advertisement power test", self.lamp.name)
+                return self.async_abort(reason="no_advertisement_response")
             if self.lamp.power_node is None:
                 _LOGGER.info("%s did not respond to the group power test", self.lamp.name)
                 return await self.async_step_direct()

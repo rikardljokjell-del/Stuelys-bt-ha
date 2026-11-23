@@ -10,7 +10,7 @@
           "address": "Bluetooth receiver",
           "password": "Mesh passphrase",
           "switch_id": "Wall switch mesh ID (hex)",
-          "without_response": "Test BLE writes without response"
+          "transport": "Transport"
         }
       },
       "learn": {
@@ -19,15 +19,15 @@
       },
       "off": {
         "title": "Test OFF",
-        "description": "Make sure the ceiling light is on before starting the test. Submit to send OFF to the wall switch's group {group} via {name}. Other lights in that group can also turn off. {detail}"
+        "description": "Make sure the ceiling light is on before starting the test. Submit to send OFF to the wall switch's group {group}. Other lights in that group can also turn off. {detail}"
       },
       "on": {
         "title": "Test ON",
-        "description": "Submit to send ON to group {group} via {name}. The next step asks you to confirm whether the lamp responded. {detail}"
+        "description": "Submit to send ON to group {group}. The next step asks you to confirm whether the lamp responded. {detail}"
       },
       "confirm": {
         "title": "Did the ceiling light respond?",
-        "description": "Select the checkbox if the intended lamp turned off and then on. If either test failed, submit with the box clear to try direct control.",
+        "description": "Select the checkbox if the intended lamp turned off and then on. If either test failed, submit with the box clear.",
         "data": {
           "observed": "I saw the intended lamp turn off and then on"
         }
@@ -65,7 +65,17 @@
       "already_configured": "This receiver is already configured.",
       "not_pill": "This device is not a recognized @MC dimmer.",
       "no_devices": "Home Assistant has not seen a connectable @MC dimmer advertising FEF1. Close the SG phone app, check Bluetooth and try again.",
-      "no_lamp_response": "The GATT writes completed, but the lamp did not respond as expected to direct control.\n\nAfter OFF → {off_status}\n\nAfter ON → {on_status}"
+      "no_lamp_response": "The GATT writes completed, but the lamp did not respond as expected to direct control.\n\nAfter OFF → {off_status}\n\nAfter ON → {on_status}",
+      "no_advertisement_response": "BlueZ accepted both advertising tests. You reported that the lamp did not respond as expected."
+    }
+  },
+  "selector": {
+    "transport": {
+      "options": {
+        "gatt": "Bluetooth GATT",
+        "gatt_without_response": "Bluetooth GATT without response",
+        "advertisement": "BLE advertisements (like the wall switch)"
+      }
     }
   },
   "options": {

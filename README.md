@@ -16,6 +16,7 @@ På mobil med Zipper i Studio Code Server kan du laste opp installasjonsfilen ti
 ```text
 /config/custom_components/sg_smart_csrmesh/
 ├── __init__.py
+├── advertise.py
 ├── config_flow.py
 ├── light.py
 ├── manifest.json
@@ -28,10 +29,10 @@ På mobil med Zipper i Studio Code Server kan du laste opp installasjonsfilen ti
 
 ## Første test på lampen
 
-1. Velg mottakerens navn og MAC-adresse. Skriv inn PIN-en og veggbryterens heksadesimale mesh-ID. Denne ID-en er avsenderen i bryterens datapakker. Den kan avvike fra de siste sifrene i mottakerens MAC-adresse.
+1. Velg mottakerens navn og MAC-adresse. Skriv inn PIN-en og veggbryterens heksadesimale mesh-ID. Denne ID-en er avsenderen i bryterens datapakker. Den kan avvike fra de siste sifrene i mottakerens MAC-adresse. Under **Sendemåte** velger du hvordan Home Assistant skal sende kommandoene.
 2. Når **Trykk PÅ på veggbryteren** vises, gi PÅ-knappen et kort trykk. Trykk deretter **Send inn**. En fersk PÅ-melding fra den oppgitte bryteren må bestå HMAC-kontrollen. Meldingen gir Home Assistant riktig gruppe og steds-ID.
 3. Sørg for at taklampen lyser. Start **Test AV** og deretter **Test PÅ** mens du ser på lampen. Testen bruker samme gruppe som veggbryteren. Hvis bryteren styrer flere lamper, kan alle reagere.
-4. Bekreft begge synlige endringer for å opprette lysentiteten. Hvis en av testene feilet, la krysset stå tomt og trykk **Send inn**. Velg **Prøv direkte styring**, og gjenta testen når mottakeren har identifisert seg. Ved bekreftelse lagres den styringsmåten lampen reagerte på.
+4. Bekreft begge synlige endringer for å opprette lysentiteten. Hvis en av testene feilet, la krysset stå tomt og trykk **Send inn**. Med GATT får du tilbud om å prøve direkte styring når mottakeren kan identifiseres. Ved bekreftelse lagres sendemåten lampen reagerte på.
 
 I AV/PÅ-modus viser entiteten antatt tilstand fra siste HA-kommando eller mottatte AV/PÅ-trykk. Etter omstart står den som ukjent fram til neste kommando.
 
@@ -53,7 +54,9 @@ Prøv for eksempel 30 % og deretter 70 %. Se på lampen ved begge nivåene. Inte
 
 Under **Prøv direkte styring** kan du la **Les lampestatus etter hver test** stå på. Etter de to testene viser veiviseren rapportert lysstyrke eller feilen for hver lesing. `FF05: 0 %` betyr at mottakeren rapporterte AV. Hvis navne- eller statusforespørselen får tidsavbrudd, viser feilmeldingen antall GATT-varsler, autentiserte mesh-meldinger og ekko av Home Assistants egne meldinger. Send gjerne skjermbildet av dette resultatet ved feil. PIN og pakkedata er utelatt fra diagnosen.
 
-Hvis BLE-skrivingen fullføres uten at lampen reagerer, kan du starte veiviseren igjen og velge **Test uten BLE-kvittering**. Da prøves samme kommando med en annen GATT-skrivemodus. Valget krever at mottakeren støtter modusen, og lagres først etter at du har bekreftet fysisk respons. Meldingen ved tidsavbrudd viser også avsender og opcode for de vanligste autentiserte meldingene.
+Hvis GATT-testen fullføres uten respons fra lampen, kan du velge **BLE-annonser (som veggbryteren)**. Da sender Home Assistant AV/PÅ til samme mesh-gruppe i FEF1-annonsedata via det lokale Bluetooth-kortet. Det krever en Linux-adapter med støtte for annonsering via BlueZ. Lampens respons må bekreftes visuelt. [BlueZ Advertising API](https://bluez.readthedocs.io/en/latest/advertising-api/)
+
+Du kan også velge **Bluetooth GATT uten kvittering** dersom mottakeren støtter den skrivemodusen. Meldingen ved tidsavbrudd viser avsender og opcode for de vanligste autentiserte meldingene.
 
 ## Hva opptakene og kildene viser
 

@@ -10,7 +10,7 @@
           "address": "Bluetooth-mottaker",
           "password": "Nettverks-PIN",
           "switch_id": "Veggbryterens mesh-ID (heksadesimal)",
-          "without_response": "Test uten BLE-kvittering"
+          "transport": "Sendemåte"
         }
       },
       "learn": {
@@ -19,15 +19,15 @@
       },
       "off": {
         "title": "Test AV",
-        "description": "Sørg for at taklampen lyser før du tester. Trykk Send inn for å sende AV til veggbryterens gruppe {group} via {name}. Andre lamper i samme gruppe kan også slukke. {detail}"
+        "description": "Sørg for at taklampen lyser før du tester. Trykk Send inn for å sende AV til veggbryterens gruppe {group}. Andre lamper i samme gruppe kan også slukke. {detail}"
       },
       "on": {
         "title": "Test PÅ",
-        "description": "Trykk Send inn for å sende PÅ til gruppe {group} via {name}. Du blir bedt om å bekrefte lampens respons etterpå. {detail}"
+        "description": "Trykk Send inn for å sende PÅ til gruppe {group}. Du blir bedt om å bekrefte lampens respons etterpå. {detail}"
       },
       "confirm": {
         "title": "Reagerte taklampen?",
-        "description": "Kryss av hvis riktig lampe slukket og deretter tente. Hvis lampen ikke reagerte begge ganger, lar du feltet stå tomt og trykker Send inn for å prøve direkte styring av mottakeren.",
+        "description": "Kryss av hvis riktig lampe slukket og deretter tente. Hvis en av testene feilet, lar du feltet stå tomt og trykker Send inn.",
         "data": {
           "observed": "Jeg så at riktig lampe slukket og deretter tente"
         }
@@ -65,7 +65,17 @@
       "already_configured": "Mottakeren er allerede konfigurert.",
       "not_pill": "Enheten ble ikke gjenkjent som en @MC-dimmer.",
       "no_devices": "Home Assistant ser ingen tilkoblingsbar @MC-dimmer med FEF1. Lukk SG-appen på mobilen, sjekk Bluetooth og prøv igjen.",
-      "no_lamp_response": "GATT-skrivingene ble fullført, men lampen reagerte ikke som forventet på direkte styring.\n\nEtter AV → {off_status}\n\nEtter PÅ → {on_status}"
+      "no_lamp_response": "GATT-skrivingene ble fullført, men lampen reagerte ikke som forventet på direkte styring.\n\nEtter AV → {off_status}\n\nEtter PÅ → {on_status}",
+      "no_advertisement_response": "BlueZ godtok begge annonsetestene. Du rapporterte at lampen ikke reagerte som forventet."
+    }
+  },
+  "selector": {
+    "transport": {
+      "options": {
+        "gatt": "Bluetooth GATT",
+        "gatt_without_response": "Bluetooth GATT uten kvittering",
+        "advertisement": "BLE-annonser (som veggbryteren)"
+      }
     }
   },
   "options": {
