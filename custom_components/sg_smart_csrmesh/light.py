@@ -7,7 +7,9 @@ from time import monotonic
 
 from homeassistant.components import bluetooth
 from homeassistant.components.light import ATTR_BRIGHTNESS, ColorMode, LightEntity
+from homeassistant.const import STATE_OFF, STATE_ON
 from homeassistant.core import callback
+from homeassistant.helpers.restore_state import RestoreEntity
 
 from . import device_info
 from .mesh import MeshError
@@ -22,7 +24,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
     async_add_entities([SGLight(entry)], update_before_add="node" in entry.options)
 
 
-class SGLight(LightEntity):
+class SGLight(LightEntity, RestoreEntity):
     _attr_has_entity_name = True
     _attr_name = None
 
@@ -48,6 +50,16 @@ class SGLight(LightEntity):
         await super().async_added_to_hass()
         if self.node is not None:
             return
+        previous = await self.async_get_last_state()
+        if previous is not None and previous.state in (STATE_ON, STATE_OFF):
+            self._attr_is_on = previous.state == STATE_ON
+            brightness = previous.attributes.get(ATTR_BRIGHTNESS)
+            if (
+                self.advertised_brightness
+                and isinstance(brightness, int)
+                and 1 <= brightness <= 255
+            ):
+                self._attr_brightness = brightness
         started = monotonic()
         last_seq = None
 

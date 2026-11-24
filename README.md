@@ -35,7 +35,7 @@ På mobil med Zipper i Studio Code Server kan du laste opp installasjonsfilen ti
 3. Sørg for at taklampen lyser. Start **Test AV** og deretter **Test PÅ** mens du ser på lampen. Testen bruker samme gruppe som veggbryteren. Hvis bryteren styrer flere lamper, kan alle reagere.
 4. Bekreft begge synlige endringer for å opprette lysentiteten. Hvis en av testene feilet, la krysset stå tomt og trykk **Send inn**. Med GATT får du tilbud om å prøve direkte styring når mottakeren kan identifiseres. Ved bekreftelse lagres sendemåten lampen reagerte på.
 
-I AV/PÅ-modus viser entiteten antatt tilstand fra siste HA-kommando eller mottatte AV/PÅ-trykk. Etter omstart står den som ukjent fram til neste kommando.
+Når lampen styres uten statuslesing, viser entiteten antatt tilstand fra siste HA-kommando eller mottatte AV/PÅ-trykk. Etter omstart gjenopprettes sist lagrede AV/PÅ og kjent skyveknappnivå. Første gang du oppgraderer fra en eldre versjon, kan du sende én lyskommando for å registrere tilstanden.
 
 ## Lysstyrke
 
